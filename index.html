@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juleølbilder</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #165B33 0%, #BB2528 50%, #F8B229 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .beer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .beer-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .beer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(187, 37, 40, 0.3);
+        }
+
+        .beer-image-container {
+            width: 100%;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .beer-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .beer-image.placeholder {
+            width: 100px;
+            height: 100px;
+            opacity: 0.3;
+        }
+
+        .beer-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            min-height: 50px;
+        }
+
+        .ratings {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .rating-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .rating-row:last-child {
+            border-bottom: none;
+        }
+
+        .rating-name {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .rating-value {
+            color: #333;
+            font-weight: bold;
+        }
+
+        .average-rating {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #BB2528;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #BB2528;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.5em;
+            padding: 50px;
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .statistics-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .statistics-section h2 {
+            color: #BB2528;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #BB2528;
+            padding-bottom: 10px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #165B33;
+        }
+
+        .stat-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            color: #BB2528;
+            font-weight: bold;
+        }
+
+        .beer-chart-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .beer-chart-section h2 {
+            color: #BB2528;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #BB2528;
+            padding-bottom: 10px;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            margin-top: 30px;
+        }
+
+        .chart-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .chart-legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85em;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 5px;
+            transition: background 0.2s ease;
+        }
+
+        .legend-item:hover {
+            background: #f0f0f0;
+        }
+
+        .legend-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        .legend-name {
+            color: #333;
+            flex: 1;
+        }
+
+        .beer-line {
+            transition: opacity 0.3s ease;
+        }
+
+        .beer-line.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .beer-points {
+            transition: opacity 0.3s ease;
+        }
+
+        .beer-points.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .legend-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .legend-button {
+            padding: 8px 16px;
+            background: #165B33;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.2s ease;
+        }
+
+        .legend-button:hover {
+            background: #BB2528;
+        }
+
+        .agreement-matrix {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        .agreement-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+
+        .agreement-table th,
+        .agreement-table td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        .agreement-table th {
+            background: #BB2528;
+            color: white;
+            font-weight: bold;
+        }
+
+        .agreement-table td {
+            background: #fff;
+        }
+
+        .agreement-high {
+            background: #d4edda !important;
+            color: #155724;
+            font-weight: bold;
+        }
+
+        .beer-section-title {
+            color: white;
+            font-size: 1.8em;
+            margin: 30px 0 20px 0;
+            text-align: center;
+            border-bottom: 3px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍺 Juleøl Smaksprøver 2023/2024 🎄</h1>
+        <div id="app">
+            <div class="loading">Laster øl...</div>
+        </div>
+    </div>
+
+    <script>
+        // Mapping between beer names in CSV and image filenames
+        const imageMapping = {
+            'delirium christmas': 'images/delirium.png',
+            'einbecker weihnachtsbier': 'images/einbecher_weinachtsbier.png',
+            'jacobsen christmas ale': 'images/jacobsen.png',
+            'bourbon barrel aged': 'images/burbon_barrel_aged.png',
+            'nøgne ø ekstra god jul': 'images/godjul_extraStrong.png',
+            'nøgne ø god jul': 'images/godjul.png',
+            'duvel': 'images/duvel.png',
+            'e.c. dahls': 'images/kong_winter.png',
+            'kong vinter': 'images/kong_winter.png',
+            'berentsens stelliger divum': 'images/divum.png',
+            'nøgne ø maple christmas barleywine': 'images/godjul.png', // Using godjul as fallback
+            'einbecker winter-bock': 'images/einbecher_winter-bock.png',
+            'nøgne ø solstice beer': 'images/solstice.png',
+            'solstice': 'images/solstice.png',
+            'de glazen toren': 'images/de glazen toren.png',
+            'père noël': 'images/pere_noel.png',
+            'cerveza de navidad': 'images/cerveza de navidad.png',
+            'jolabrygg': 'images/jolabrygg.png',
+            's – new england christmas': 'images/S-new_england.png',
+            'new england': 'images/S-new_england.png',
+            'oslo brewing co': 'images/voksenbrus.png',
+            'voksenjulebrus': 'images/voksenbrus.png',
+            'enebærbus': 'images/enebærbusk.png',
+            'julequad belgian': 'images/julequad.png'
+        };
+
+        function findImageForBeer(beerName) {
+            const lowerName = beerName.toLowerCase();
+            
+            // Try direct match first
+            for (const [key, image] of Object.entries(imageMapping)) {
+                if (lowerName.includes(key)) {
+                    return image;
+                }
+            }
+            
+            return null;
+        }
+
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+            
+            const beers = [];
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+                const beerName = values[0];
+                const ratings = {};
+                
+                for (let j = 1; j < headers.length; j++) {
+                    const rating = values[j];
+                    ratings[headers[j]] = rating !== '' ? parseFloat(rating) : null;
+                }
+                
+                beers.push({
+                    name: beerName,
+                    ratings: ratings,
+                    image: findImageForBeer(beerName)
+                });
+            }
+            
+            return beers;
+        }
+
+        function calculateAverage(ratings) {
+            const validRatings = Object.values(ratings).filter(r => r !== null && !isNaN(r));
+            if (validRatings.length === 0) return 0;
+            const sum = validRatings.reduce((acc, val) => acc + val, 0);
+            return (sum / validRatings.length).toFixed(1);
+        }
+
+        function createBeerCard(beer) {
+            const card = document.createElement('div');
+            card.className = 'beer-card';
+            
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'beer-image-container';
+            
+            const img = document.createElement('img');
+            if (beer.image) {
+                img.src = beer.image;
+                img.alt = beer.name;
+                img.className = 'beer-image';
+                img.onerror = () => {
+                    img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ctext y="50" font-size="50" text-anchor="middle" x="50"%3E🍺%3C/text%3E%3C/svg%3E';
+                    img.className = 'beer-image placeholder';
+                };
+            } else {
+                img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ctext y="50" font-size="50" text-anchor="middle" x="50"%3E🍺%3C/text%3E%3C/svg%3E';
+                img.className = 'beer-image placeholder';
+            }
+            
+            imageContainer.appendChild(img);
+            
+            const name = document.createElement('div');
+            name.className = 'beer-name';
+            name.textContent = beer.name;
+            
+            const ratingsDiv = document.createElement('div');
+            ratingsDiv.className = 'ratings';
+            
+            for (const [person, rating] of Object.entries(beer.ratings)) {
+                const row = document.createElement('div');
+                row.className = 'rating-row';
+                
+                const personName = document.createElement('span');
+                personName.className = 'rating-name';
+                personName.textContent = person;
+                
+                const ratingValue = document.createElement('span');
+                ratingValue.className = 'rating-value';
+                ratingValue.textContent = rating !== null ? rating : '-';
+                
+                row.appendChild(personName);
+                row.appendChild(ratingValue);
+                ratingsDiv.appendChild(row);
+            }
+            
+            const average = document.createElement('div');
+            average.className = 'average-rating';
+            average.innerHTML = `<span>Gjennomsnitt:</span><span>${calculateAverage(beer.ratings)}</span>`;
+            
+            card.appendChild(imageContainer);
+            card.appendChild(name);
+            card.appendChild(ratingsDiv);
+            card.appendChild(average);
+            
+            return card;
+        }
+
+        function calculateBeerSpan(beer) {
+            const validRatings = Object.values(beer.ratings).filter(r => r !== null && !isNaN(r));
+            if (validRatings.length === 0) return 0;
+            return Math.max(...validRatings) - Math.min(...validRatings);
+        }
+
+        function calculatePersonAlignment(beers, person) {
+            // Skip Bente from statistics
+            if (person === 'Bente') return Infinity;
+            
+            // Calculate correlation with overall ranking
+            let sumDiff = 0;
+            let count = 0;
+            
+            beers.forEach((beer, index) => {
+                const rating = beer.ratings[person];
+                if (rating !== null && !isNaN(rating)) {
+                    const avgRating = parseFloat(calculateAverage(beer.ratings));
+                    sumDiff += Math.abs(rating - avgRating);
+                    count++;
+                }
+            });
+            
+            return count > 0 ? sumDiff / count : Infinity;
+        }
+
+        function calculatePairwiseAgreement(beers, person1, person2) {
+            // Skip Bente from statistics
+            if (person1 === 'Bente' || person2 === 'Bente') return Infinity;
+            
+            let sumDiff = 0;
+            let count = 0;
+            
+            beers.forEach(beer => {
+                const rating1 = beer.ratings[person1];
+                const rating2 = beer.ratings[person2];
+                
+                if (rating1 !== null && !isNaN(rating1) && rating2 !== null && !isNaN(rating2)) {
+                    sumDiff += Math.abs(rating1 - rating2);
+                    count++;
+                }
+            });
+            
+            return count > 0 ? sumDiff / count : Infinity;
+        }
+
+        function createStatistics(beers) {
+            const statsSection = document.createElement('div');
+            statsSection.className = 'statistics-section';
+            
+            const title = document.createElement('h2');
+            title.textContent = '📊 Statistikk';
+            statsSection.appendChild(title);
+            
+            const statGrid = document.createElement('div');
+            statGrid.className = 'stat-grid';
+            
+            // 1. Person most aligned with ranked list
+            const people = Object.keys(beers[0].ratings);
+            const alignmentScores = people.map(person => ({
+                person,
+                score: calculatePersonAlignment(beers, person)
+            })).filter(x => x.score !== Infinity);
+            
+            alignmentScores.sort((a, b) => a.score - b.score);
+            
+            const alignmentCard = document.createElement('div');
+            alignmentCard.className = 'stat-card';
+            alignmentCard.innerHTML = `
+                <h3>🎯 Mest enig med gjennomsnittet</h3>
+                ${alignmentScores.slice(0, 5).map((item, idx) => `
+                    <div class="stat-item">
+                        <span class="stat-label">${idx + 1}. ${item.person}</span>
+                        <span class="stat-value">${item.score.toFixed(2)} poeng avvik</span>
+                    </div>
+                `).join('')}
+            `;
+            statGrid.appendChild(alignmentCard);
+            
+            // 2. Beer with highest and lowest span
+            const beerSpans = beers.map(beer => ({
+                name: beer.name,
+                span: calculateBeerSpan(beer)
+            })).filter(x => x.span > 0);
+            
+            beerSpans.sort((a, b) => b.span - a.span);
+            
+            const spanCard = document.createElement('div');
+            spanCard.className = 'stat-card';
+            spanCard.innerHTML = `
+                <h3>📏 Mest og minst uenighet</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Høyest spredning:</span>
+                    <span class="stat-value">${beerSpans[0].name.substring(0, 25)}... (${beerSpans[0].span} poeng)</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Lavest spredning:</span>
+                    <span class="stat-value">${beerSpans[beerSpans.length - 1].name.substring(0, 25)}... (${beerSpans[beerSpans.length - 1].span} poeng)</span>
+                </div>
+            `;
+            statGrid.appendChild(spanCard);
+            
+            // 3. Pairwise agreement
+            const agreements = [];
+            for (let i = 0; i < people.length; i++) {
+                for (let j = i + 1; j < people.length; j++) {
+                    const agreement = calculatePairwiseAgreement(beers, people[i], people[j]);
+                    if (agreement !== Infinity) {
+                        agreements.push({
+                            pair: `${people[i]} & ${people[j]}`,
+                            score: agreement
+                        });
+                    }
+                }
+            }
+            
+            agreements.sort((a, b) => a.score - b.score);
+            
+            const agreementCard = document.createElement('div');
+            agreementCard.className = 'stat-card';
+            agreementCard.innerHTML = `
+                <h3>🤝 Mest enige par</h3>
+                ${agreements.slice(0, 5).map((item, idx) => `
+                    <div class="stat-item">
+                        <span class="stat-label">${idx + 1}. ${item.pair}</span>
+                        <span class="stat-value">${item.score.toFixed(2)} poeng avvik</span>
+                    </div>
+                `).join('')}
+            `;
+            statGrid.appendChild(agreementCard);
+            
+            statsSection.appendChild(statGrid);
+            
+            return statsSection;
+        }
+
+        function createBeerChart(beers) {
+            const chartSection = document.createElement('div');
+            chartSection.className = 'beer-chart-section';
+            
+            const title = document.createElement('h2');
+            title.textContent = '📊 Score-diagram for alle øl';
+            chartSection.appendChild(title);
+            
+            // Add control buttons
+            const controlsDiv = document.createElement('div');
+            controlsDiv.className = 'legend-controls';
+            
+            const selectAllBtn = document.createElement('button');
+            selectAllBtn.className = 'legend-button';
+            selectAllBtn.textContent = 'Velg alle';
+            
+            const deselectAllBtn = document.createElement('button');
+            deselectAllBtn.className = 'legend-button';
+            deselectAllBtn.textContent = 'Fjern alle';
+            
+            controlsDiv.appendChild(selectAllBtn);
+            controlsDiv.appendChild(deselectAllBtn);
+            chartSection.appendChild(controlsDiv);
+            
+            // Get all people (x-axis)
+            const people = Object.keys(beers[0].ratings);
+            
+            // Chart dimensions
+            const width = 1200;
+            const height = 600;
+            const margin = { top: 40, right: 200, bottom: 80, left: 60 };
+            const chartWidth = width - margin.left - margin.right;
+            const chartHeight = height - margin.top - margin.bottom;
+            
+            // Color palette for beers
+            const colors = [
+                '#e63946', '#f77f00', '#fcbf49', '#06d6a0', '#118ab2',
+                '#073b4c', '#ef476f', '#ffd166', '#06ffa5', '#8338ec',
+                '#fb5607', '#ff006e', '#8ac926', '#1982c4', '#6a4c93',
+                '#c9184a', '#ffba08', '#38b000', '#0077b6', '#9d4edd'
+            ];
+            
+            // Create SVG
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('class', 'chart-svg');
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            
+            // Create background
+            const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            bg.setAttribute('width', width);
+            bg.setAttribute('height', height);
+            bg.setAttribute('fill', '#ffffff');
+            svg.appendChild(bg);
+            
+            // Create chart group
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('transform', `translate(${margin.left},${margin.top})`);
+            
+            // Scales
+            const xScale = (index) => (index / (people.length - 1)) * chartWidth;
+            const yScale = (value) => chartHeight - (value / 10) * chartHeight;
+            
+            // Draw grid lines
+            for (let i = 0; i <= 10; i++) {
+                const y = yScale(i);
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', 0);
+                line.setAttribute('y1', y);
+                line.setAttribute('x2', chartWidth);
+                line.setAttribute('y2', y);
+                line.setAttribute('stroke', '#e0e0e0');
+                line.setAttribute('stroke-width', '1');
+                g.appendChild(line);
+                
+                // Y-axis labels
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', -10);
+                text.setAttribute('y', y + 4);
+                text.setAttribute('text-anchor', 'end');
+                text.setAttribute('font-size', '12');
+                text.setAttribute('fill', '#666');
+                text.textContent = i;
+                g.appendChild(text);
+            }
+            
+            // Draw axes
+            const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            xAxis.setAttribute('x1', 0);
+            xAxis.setAttribute('y1', chartHeight);
+            xAxis.setAttribute('x2', chartWidth);
+            xAxis.setAttribute('y2', chartHeight);
+            xAxis.setAttribute('stroke', '#333');
+            xAxis.setAttribute('stroke-width', '2');
+            g.appendChild(xAxis);
+            
+            const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            yAxis.setAttribute('x1', 0);
+            yAxis.setAttribute('y1', 0);
+            yAxis.setAttribute('x2', 0);
+            yAxis.setAttribute('y2', chartHeight);
+            yAxis.setAttribute('stroke', '#333');
+            yAxis.setAttribute('stroke-width', '2');
+            g.appendChild(yAxis);
+            
+            // X-axis labels (people names)
+            people.forEach((person, i) => {
+                const x = xScale(i);
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', x);
+                text.setAttribute('y', chartHeight + 20);
+                text.setAttribute('text-anchor', 'end');
+                text.setAttribute('transform', `rotate(-45, ${x}, ${chartHeight + 20})`);
+                text.setAttribute('font-size', '12');
+                text.setAttribute('fill', '#333');
+                text.textContent = person;
+                g.appendChild(text);
+            });
+            
+            // Y-axis label
+            const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            yLabel.setAttribute('x', -chartHeight / 2);
+            yLabel.setAttribute('y', -40);
+            yLabel.setAttribute('text-anchor', 'middle');
+            yLabel.setAttribute('transform', `rotate(-90, -40, ${chartHeight / 2})`);
+            yLabel.setAttribute('font-size', '14');
+            yLabel.setAttribute('font-weight', 'bold');
+            yLabel.setAttribute('fill', '#333');
+            yLabel.textContent = 'Score';
+            g.appendChild(yLabel);
+            
+            // Draw lines for each beer
+            const beerElements = [];
+            beers.forEach((beer, beerIndex) => {
+                const color = colors[beerIndex % colors.length];
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('class', 'beer-line');
+                path.setAttribute('data-beer-index', beerIndex);
+                
+                const pointsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                pointsGroup.setAttribute('class', 'beer-points');
+                pointsGroup.setAttribute('data-beer-index', beerIndex);
+                
+                let d = '';
+                let firstPoint = true;
+                
+                people.forEach((person, personIndex) => {
+                    const rating = beer.ratings[person];
+                    if (rating !== null && !isNaN(rating)) {
+                        const x = xScale(personIndex);
+                        const y = yScale(rating);
+                        
+                        if (firstPoint) {
+                            d += `M ${x} ${y}`;
+                            firstPoint = false;
+                        } else {
+                            d += ` L ${x} ${y}`;
+                        }
+                        
+                        // Draw points
+                        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        circle.setAttribute('cx', x);
+                        circle.setAttribute('cy', y);
+                        circle.setAttribute('r', '4');
+                        circle.setAttribute('fill', color);
+                        circle.setAttribute('stroke', 'white');
+                        circle.setAttribute('stroke-width', '2');
+                        
+                        // Tooltip
+                        const titleEl = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                        titleEl.textContent = `${beer.name}\n${person}: ${rating}`;
+                        circle.appendChild(titleEl);
+                        
+                        pointsGroup.appendChild(circle);
+                    }
+                });
+                
+                if (d) {
+                    path.setAttribute('d', d);
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('stroke', color);
+                    path.setAttribute('stroke-width', '2.5');
+                    path.setAttribute('stroke-linejoin', 'round');
+                    path.setAttribute('stroke-linecap', 'round');
+                    
+                    const titleEl = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                    titleEl.textContent = beer.name;
+                    path.appendChild(titleEl);
+                    
+                    g.appendChild(path);
+                    g.appendChild(pointsGroup);
+                    
+                    beerElements.push({ path, pointsGroup, beerIndex });
+                }
+            });
+            
+            svg.appendChild(g);
+            
+            const chartContainer = document.createElement('div');
+            chartContainer.className = 'chart-container';
+            chartContainer.appendChild(svg);
+            chartSection.appendChild(chartContainer);
+            
+            // Add legend with checkboxes
+            const legend = document.createElement('div');
+            legend.className = 'chart-legend';
+            
+            const checkboxes = [];
+            
+            beers.forEach((beer, index) => {
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'legend-checkbox';
+                checkbox.checked = true;
+                checkbox.id = `beer-checkbox-${index}`;
+                checkbox.dataset.beerIndex = index;
+                
+                const colorBox = document.createElement('div');
+                colorBox.className = 'legend-color';
+                colorBox.style.backgroundColor = colors[index % colors.length];
+                
+                const label = document.createElement('label');
+                label.className = 'legend-name';
+                label.htmlFor = `beer-checkbox-${index}`;
+                label.textContent = beer.name;
+                label.style.cursor = 'pointer';
+                
+                // Toggle visibility on checkbox change
+                checkbox.addEventListener('change', () => {
+                    const beerLine = svg.querySelector(`.beer-line[data-beer-index="${index}"]`);
+                    const beerPoints = svg.querySelector(`.beer-points[data-beer-index="${index}"]`);
+                    
+                    if (checkbox.checked) {
+                        beerLine?.classList.remove('hidden');
+                        beerPoints?.classList.remove('hidden');
+                    } else {
+                        beerLine?.classList.add('hidden');
+                        beerPoints?.classList.add('hidden');
+                    }
+                });
+                
+                // Click on item toggles checkbox
+                item.addEventListener('click', (e) => {
+                    if (e.target !== checkbox) {
+                        checkbox.checked = !checkbox.checked;
+                        checkbox.dispatchEvent(new Event('change'));
+                    }
+                });
+                
+                checkboxes.push(checkbox);
+                
+                item.appendChild(checkbox);
+                item.appendChild(colorBox);
+                item.appendChild(label);
+                legend.appendChild(item);
+            });
+            
+            chartSection.appendChild(legend);
+            
+            // Select/Deselect all buttons functionality
+            selectAllBtn.addEventListener('click', () => {
+                checkboxes.forEach(cb => {
+                    if (!cb.checked) {
+                        cb.checked = true;
+                        cb.dispatchEvent(new Event('change'));
+                    }
+                });
+            });
+            
+            deselectAllBtn.addEventListener('click', () => {
+                checkboxes.forEach(cb => {
+                    if (cb.checked) {
+                        cb.checked = false;
+                        cb.dispatchEvent(new Event('change'));
+                    }
+                });
+            });
+            
+            return chartSection;
+        }
+
+        async function loadBeers() {
+            try {
+                const response = await fetch('stats/beer.csv');
+                if (!response.ok) throw new Error('Kunne ikke laste CSV-filen');
+                
+                const csvText = await response.text();
+                const beers = parseCSV(csvText);
+                
+                // Sort by average rating (descending)
+                beers.sort((a, b) => calculateAverage(b.ratings) - calculateAverage(a.ratings));
+                
+                const app = document.getElementById('app');
+                app.innerHTML = '';
+                
+                // Add beer section title
+                const beerTitle = document.createElement('h2');
+                beerTitle.className = 'beer-section-title';
+                beerTitle.textContent = '🍺 Alle øl rangert etter gjennomsnitt';
+                app.appendChild(beerTitle);
+                
+                // Add beer grid
+                const grid = document.createElement('div');
+                grid.className = 'beer-grid';
+                
+                beers.forEach(beer => {
+                    grid.appendChild(createBeerCard(beer));
+                });
+                
+                app.appendChild(grid);
+                
+                // Add statistics section at the bottom
+                app.appendChild(createStatistics(beers));
+                
+                // Add beer chart
+                app.appendChild(createBeerChart(beers));
+            } catch (error) {
+                const app = document.getElementById('app');
+                app.innerHTML = `<div class="error">Feil ved lasting: ${error.message}</div>`;
+            }
+        }
+
+        // Load beers when page loads
+        loadBeers();
+    </script>
+</body>
+</html>
