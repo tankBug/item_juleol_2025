@@ -349,7 +349,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🍺 Juleøl Smaksprøver 2023/2024 🎄</h1>
+        <h1>🍺 Juleøl Smaksprøver 2025 🎄</h1>
         <div id="app">
             <div class="loading">Laster øl...</div>
         </div>
@@ -566,6 +566,37 @@
                 `).join('')}
             `;
             statGrid.appendChild(alignmentCard);
+            
+            // Most/Least generous raters
+            const generosityScores = people.map(person => {
+                if (person === 'Bente') return null;
+                const ratings = [];
+                beers.forEach(beer => {
+                    const rating = beer.ratings[person];
+                    if (rating !== null && !isNaN(rating)) {
+                        ratings.push(rating);
+                    }
+                });
+                const avg = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+                return { person, avg, count: ratings.length };
+            }).filter(x => x !== null && x.count > 0);
+            
+            generosityScores.sort((a, b) => b.avg - a.avg);
+            
+            const generosityCard = document.createElement('div');
+            generosityCard.className = 'stat-card';
+            generosityCard.innerHTML = `
+                <h3>🎁 Mest og minst generøs</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Mest generøs: ${generosityScores[0].person}</span>
+                    <span class="stat-value">${generosityScores[0].avg.toFixed(2)} snitt</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Minst generøs: ${generosityScores[generosityScores.length - 1].person}</span>
+                    <span class="stat-value">${generosityScores[generosityScores.length - 1].avg.toFixed(2)} snitt</span>
+                </div>
+            `;
+            statGrid.appendChild(generosityCard);
             
             // 2. Beer with highest and lowest span
             const beerSpans = beers.map(beer => ({
