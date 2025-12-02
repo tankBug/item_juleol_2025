@@ -1055,7 +1055,7 @@
             chartSection.className = 'beer-chart-section';
             
             const title = document.createElement('h2');
-            title.textContent = '📊 Gjennomsnittsscore per øl';
+            title.textContent = '📊 Gjennomsnittsscore per øl (i smaksrekkefølge)';
             chartSection.appendChild(title);
             
             // Chart dimensions
@@ -1226,8 +1226,8 @@
                 const csvText = await response.text();
                 const beers = parseCSV(csvText);
                 
-                // Sort by average rating (descending)
-                beers.sort((a, b) => calculateAverage(b.ratings) - calculateAverage(a.ratings));
+                // Sort by average rating (descending) for display
+                const beersSorted = [...beers].sort((a, b) => calculateAverage(b.ratings) - calculateAverage(a.ratings));
                 
                 const app = document.getElementById('app');
                 app.innerHTML = '';
@@ -1242,19 +1242,19 @@
                 const grid = document.createElement('div');
                 grid.className = 'beer-grid';
                 
-                beers.forEach(beer => {
+                beersSorted.forEach(beer => {
                     grid.appendChild(createBeerCard(beer));
                 });
                 
                 app.appendChild(grid);
                 
                 // Add statistics section at the bottom
-                app.appendChild(createStatistics(beers));
+                app.appendChild(createStatistics(beersSorted));
                 
-                // Add beer chart
-                app.appendChild(createBeerChart(beers));
+                // Add beer chart (sorted)
+                app.appendChild(createBeerChart(beersSorted));
                 
-                // Add beer average chart
+                // Add beer average chart (original CSV order)
                 app.appendChild(createBeerAverageChart(beers));
             } catch (error) {
                 const app = document.getElementById('app');
