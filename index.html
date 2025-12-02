@@ -850,6 +850,67 @@
                 }
             });
             
+            // Draw average line
+            const avgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            avgPath.setAttribute('class', 'beer-line');
+            avgPath.setAttribute('data-beer-index', 'average');
+            avgPath.setAttribute('stroke', '#000000');
+            avgPath.setAttribute('stroke-width', '4');
+            avgPath.setAttribute('stroke-dasharray', '8,4');
+            avgPath.setAttribute('fill', 'none');
+            
+            const avgPointsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            avgPointsGroup.setAttribute('class', 'beer-points');
+            avgPointsGroup.setAttribute('data-beer-index', 'average');
+            
+            let avgD = '';
+            people.forEach((person, personIndex) => {
+                // Calculate average score for this person across all beers
+                let sum = 0;
+                let count = 0;
+                beers.forEach(beer => {
+                    const rating = beer.ratings[person];
+                    if (rating !== null && !isNaN(rating)) {
+                        sum += rating;
+                        count++;
+                    }
+                });
+                
+                if (count > 0) {
+                    const avgRating = sum / count;
+                    const x = xScale(personIndex);
+                    const y = yScale(avgRating);
+                    
+                    if (avgD === '') {
+                        avgD += `M ${x} ${y}`;
+                    } else {
+                        avgD += ` L ${x} ${y}`;
+                    }
+                    
+                    // Draw average points
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', x);
+                    circle.setAttribute('cy', y);
+                    circle.setAttribute('r', '5');
+                    circle.setAttribute('fill', '#000000');
+                    circle.setAttribute('stroke', 'white');
+                    circle.setAttribute('stroke-width', '2');
+                    
+                    const titleEl = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                    titleEl.textContent = `Gjennomsnitt\n${person}: ${avgRating.toFixed(1)}`;
+                    circle.appendChild(titleEl);
+                    
+                    avgPointsGroup.appendChild(circle);
+                }
+            });
+            
+            if (avgD) {
+                avgPath.setAttribute('d', avgD);
+                g.appendChild(avgPath);
+                g.appendChild(avgPointsGroup);
+                beerElements.push({ path: avgPath, pointsGroup: avgPointsGroup, beerIndex: 'average' });
+            }
+            
             svg.appendChild(g);
             
             const chartContainer = document.createElement('div');
@@ -862,6 +923,57 @@
             legend.className = 'chart-legend';
             
             const checkboxes = [];
+            
+            // Add average line to legend first
+            const avgItem = document.createElement('div');
+            avgItem.className = 'legend-item';
+            avgItem.style.fontWeight = 'bold';
+            
+            const avgCheckbox = document.createElement('input');
+            avgCheckbox.type = 'checkbox';
+            avgCheckbox.className = 'legend-checkbox';
+            avgCheckbox.checked = true;
+            avgCheckbox.id = `beer-checkbox-average`;
+            avgCheckbox.dataset.beerIndex = 'average';
+            
+            const avgColorBox = document.createElement('div');
+            avgColorBox.className = 'legend-color';
+            avgColorBox.style.backgroundColor = '#000000';
+            avgColorBox.style.height = '4px';
+            
+            const avgLabel = document.createElement('label');
+            avgLabel.className = 'legend-name';
+            avgLabel.htmlFor = `beer-checkbox-average`;
+            avgLabel.textContent = 'Gjennomsnitt alle øl';
+            avgLabel.style.cursor = 'pointer';
+            avgLabel.style.fontWeight = 'bold';
+            
+            avgCheckbox.addEventListener('change', () => {
+                const avgLine = svg.querySelector(`.beer-line[data-beer-index="average"]`);
+                const avgPoints = svg.querySelector(`.beer-points[data-beer-index="average"]`);
+                
+                if (avgCheckbox.checked) {
+                    avgLine?.classList.remove('hidden');
+                    avgPoints?.classList.remove('hidden');
+                } else {
+                    avgLine?.classList.add('hidden');
+                    avgPoints?.classList.add('hidden');
+                }
+            });
+            
+            avgItem.addEventListener('click', (e) => {
+                if (e.target !== avgCheckbox) {
+                    avgCheckbox.checked = !avgCheckbox.checked;
+                    avgCheckbox.dispatchEvent(new Event('change'));
+                }
+            });
+            
+            checkboxes.push(avgCheckbox);
+            
+            avgItem.appendChild(avgCheckbox);
+            avgItem.appendChild(avgColorBox);
+            avgItem.appendChild(avgLabel);
+            legend.appendChild(avgItem);
             
             beers.forEach((beer, index) => {
                 const item = document.createElement('div');
