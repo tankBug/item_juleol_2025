@@ -1050,6 +1050,174 @@
             return chartSection;
         }
 
+        function createBeerAverageChart(beers) {
+            const chartSection = document.createElement('div');
+            chartSection.className = 'beer-chart-section';
+            
+            const title = document.createElement('h2');
+            title.textContent = '📊 Gjennomsnittsscore per øl';
+            chartSection.appendChild(title);
+            
+            // Chart dimensions
+            const width = 1200;
+            const height = 600;
+            const margin = { top: 40, right: 40, bottom: 150, left: 60 };
+            const chartWidth = width - margin.left - margin.right;
+            const chartHeight = height - margin.top - margin.bottom;
+            
+            // Create SVG
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('class', 'chart-svg');
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            
+            // Create background
+            const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            bg.setAttribute('width', width);
+            bg.setAttribute('height', height);
+            bg.setAttribute('fill', '#ffffff');
+            svg.appendChild(bg);
+            
+            // Create chart group
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('transform', `translate(${margin.left},${margin.top})`);
+            
+            // Scales
+            const xScale = (index) => (index / (beers.length - 1)) * chartWidth;
+            const yScale = (value) => chartHeight - (value / 10) * chartHeight;
+            
+            // Draw grid lines
+            for (let i = 0; i <= 10; i++) {
+                const y = yScale(i);
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', 0);
+                line.setAttribute('y1', y);
+                line.setAttribute('x2', chartWidth);
+                line.setAttribute('y2', y);
+                line.setAttribute('stroke', '#e0e0e0');
+                line.setAttribute('stroke-width', '1');
+                g.appendChild(line);
+                
+                // Y-axis labels
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', -10);
+                text.setAttribute('y', y + 4);
+                text.setAttribute('text-anchor', 'end');
+                text.setAttribute('font-size', '12');
+                text.setAttribute('fill', '#666');
+                text.textContent = i;
+                g.appendChild(text);
+            }
+            
+            // Draw axes
+            const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            xAxis.setAttribute('x1', 0);
+            xAxis.setAttribute('y1', chartHeight);
+            xAxis.setAttribute('x2', chartWidth);
+            xAxis.setAttribute('y2', chartHeight);
+            xAxis.setAttribute('stroke', '#333');
+            xAxis.setAttribute('stroke-width', '2');
+            g.appendChild(xAxis);
+            
+            const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            yAxis.setAttribute('x1', 0);
+            yAxis.setAttribute('y1', 0);
+            yAxis.setAttribute('x2', 0);
+            yAxis.setAttribute('y2', chartHeight);
+            yAxis.setAttribute('stroke', '#333');
+            yAxis.setAttribute('stroke-width', '2');
+            g.appendChild(yAxis);
+            
+            // X-axis labels (beer names)
+            beers.forEach((beer, i) => {
+                const x = xScale(i);
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', x);
+                text.setAttribute('y', chartHeight + 20);
+                text.setAttribute('text-anchor', 'end');
+                text.setAttribute('transform', `rotate(-45, ${x}, ${chartHeight + 20})`);
+                text.setAttribute('font-size', '11');
+                text.setAttribute('fill', '#333');
+                text.textContent = beer.name.length > 35 ? beer.name.substring(0, 35) + '...' : beer.name;
+                g.appendChild(text);
+            });
+            
+            // Y-axis label
+            const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            yLabel.setAttribute('x', -chartHeight / 2);
+            yLabel.setAttribute('y', -40);
+            yLabel.setAttribute('text-anchor', 'middle');
+            yLabel.setAttribute('transform', `rotate(-90, -40, ${chartHeight / 2})`);
+            yLabel.setAttribute('font-size', '14');
+            yLabel.setAttribute('font-weight', 'bold');
+            yLabel.setAttribute('fill', '#333');
+            yLabel.textContent = 'Gjennomsnittsscore';
+            g.appendChild(yLabel);
+            
+            // Draw line connecting averages
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            let d = '';
+            
+            beers.forEach((beer, index) => {
+                const avg = parseFloat(calculateAverage(beer.ratings));
+                const x = xScale(index);
+                const y = yScale(avg);
+                
+                if (index === 0) {
+                    d += `M ${x} ${y}`;
+                } else {
+                    d += ` L ${x} ${y}`;
+                }
+                
+                // Draw bar
+                const bar = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                bar.setAttribute('x', x - 8);
+                bar.setAttribute('y', y);
+                bar.setAttribute('width', '16');
+                bar.setAttribute('height', chartHeight - y);
+                bar.setAttribute('fill', '#BB2528');
+                bar.setAttribute('opacity', '0.6');
+                
+                const titleEl = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                titleEl.textContent = `${beer.name}\nGjennomsnitt: ${avg}`;
+                bar.appendChild(titleEl);
+                
+                g.appendChild(bar);
+                
+                // Draw point
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', x);
+                circle.setAttribute('cy', y);
+                circle.setAttribute('r', '5');
+                circle.setAttribute('fill', '#165B33');
+                circle.setAttribute('stroke', 'white');
+                circle.setAttribute('stroke-width', '2');
+                
+                const circleTitleEl = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                circleTitleEl.textContent = `${beer.name}\nGjennomsnitt: ${avg}`;
+                circle.appendChild(circleTitleEl);
+                
+                g.appendChild(circle);
+            });
+            
+            path.setAttribute('d', d);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', '#165B33');
+            path.setAttribute('stroke-width', '3');
+            path.setAttribute('stroke-linejoin', 'round');
+            path.setAttribute('stroke-linecap', 'round');
+            
+            g.appendChild(path);
+            
+            svg.appendChild(g);
+            
+            const chartContainer = document.createElement('div');
+            chartContainer.className = 'chart-container';
+            chartContainer.appendChild(svg);
+            chartSection.appendChild(chartContainer);
+            
+            return chartSection;
+        }
+
         async function loadBeers() {
             try {
                 const response = await fetch('stats/beer.csv');
@@ -1085,6 +1253,9 @@
                 
                 // Add beer chart
                 app.appendChild(createBeerChart(beers));
+                
+                // Add beer average chart
+                app.appendChild(createBeerAverageChart(beers));
             } catch (error) {
                 const app = document.getElementById('app');
                 app.innerHTML = `<div class="error">Feil ved lasting: ${error.message}</div>`;
